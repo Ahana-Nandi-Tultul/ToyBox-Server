@@ -41,6 +41,13 @@ async function run() {
       res.send(result);
     })
 
+    app.get('/toys/:categoryName', async(req, res)=>{
+      const categoryName = req.params.categoryName;
+      const query = {subCategory: categoryName};
+      const result = await toyCollection.find(query).toArray();
+      res.send(result);
+    })
+
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });

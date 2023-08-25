@@ -35,9 +35,13 @@ async function run() {
       res.send(result);
     })
 
-    app.post('/toys', async(req, res) => {
-      const toys = req.body;
-      const result = await toyCollection.insertOne(toys)
+    app.get('/toys', async(req, res) => {
+      const search = req.query.search;
+      let query = {};
+      if(search){
+        query = {toyName : search}
+      }
+      const result = await toyCollection.find(query).toArray();
       res.send(result);
     })
 
@@ -48,6 +52,11 @@ async function run() {
       res.send(result);
     })
 
+    app.post('/toys', async(req, res) => {
+      const toys = req.body;
+      const result = await toyCollection.insertOne(toys)
+      res.send(result);
+    })
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });

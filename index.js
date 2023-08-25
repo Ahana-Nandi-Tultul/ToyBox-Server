@@ -45,6 +45,15 @@ async function run() {
       res.send(result);
     })
 
+    app.get('/toy/:id', async(req, res) => {
+      const id = req.params.id;
+      console.log(id);
+      const email = req.query.email;
+      const query = {_id : new ObjectId(id)}
+      const result = await toyCollection.find(query).toArray();
+      res.send(result);
+    })
+
     app.get('/toys/:categoryName', async(req, res)=>{
       const categoryName = req.params.categoryName;
       const query = {subCategory: categoryName};
@@ -85,7 +94,7 @@ async function run() {
       // console.log(id);
       const email = req.query.email;
       const toy = req.body;
-      console.log(toy);
+      // console.log(toy);
       const filter = {_id : new ObjectId(id)}
       const updateToy = {
         $set: {

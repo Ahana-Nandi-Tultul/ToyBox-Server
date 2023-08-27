@@ -1,5 +1,6 @@
 const express = require('express');
 const app = express();
+var jwt = require('jsonwebtoken');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const cors = require('cors');
 require('dotenv').config();
@@ -21,6 +22,23 @@ const client = new MongoClient(uri, {
   }
 });
 
+
+const verifyJWT = (req, res, next) => {
+  const authorization = req.headers.authorization;
+  if(!authorization) {
+    return res.status(401).send({error: true, message: 'unauthorized access'})
+  }
+  const token = authorization.split(' ')[1]
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (error, decoded) => {
+    if(error){
+      return res.status(401).send({error: true, message: 'unauthorized access'})
+    }
+    req.decoded = decoded;
+    next()
+  })
+} 
+
+
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
@@ -29,6 +47,13 @@ async function run() {
 
     const subCategoryCollection = client.db('toyBoxDB').collection('subCategories');
     const toyCollection = client.db('toyBoxDB').collection('toys');
+
+    app.post('/jwt', async(req, res) => {
+      const loggedUser = req.body;
+      // console.log(loggedUser)
+      const token = jwt.sign(loggedUser, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '24h' })
+      res.send({token});
+    })
 
     app.get('/subCategories', async(req, res) => {
       const result = await subCategoryCollection.find().toArray();
@@ -45,9 +70,18 @@ async function run() {
       res.send(result);
     })
 
+    app.get('/toys/gallery', async(req, res) => {
+      const query = {};
+      const options = {
+        projection: { _id: 1, toyName: 1, photo: 1 }
+      };
+      const result = await toyCollection.find(query, options).limit(15).toArray();
+      res.send(result);
+    })
+
     app.get('/toy/:id', async(req, res) => {
       const id = req.params.id;
-      console.log(id);
+      // console.log(id);
       const email = req.query.email;
       const query = {_id : new ObjectId(id)}
       const result = await toyCollection.find(query).toArray();
@@ -74,7 +108,7 @@ async function run() {
       res.send(result)
     })
 
-    app.get('/myToys', async( req, res ) => {
+    app.get('/myToys', verifyJWT, async( req, res ) => {
       const email = req.query.email;
       const query = {
         sellerEmail: email
@@ -83,13 +117,13 @@ async function run() {
       res.send(result);
     })
 
-    app.post('/toys', async(req, res) => {
+    app.post('/toys', verifyJWT, async(req, res) => {
       const toys = req.body;
       const result = await toyCollection.insertOne(toys)
       res.send(result);
     })
 
-    app.patch('/toys/:id', async(req, res) => {
+    app.patch('/toys/:id', verifyJWT, async(req, res) => {
       const id = req.params.id;
       // console.log(id);
       const email = req.query.email;
@@ -107,7 +141,7 @@ async function run() {
       res.send(result);
     })
 
-    app.delete('/toys/:id', async(req, res) => {
+    app.delete('/toys/:id', verifyJWT, async(req, res) => {
       const id = req.params.id;
       console.log(id);
       const email = req.query.email;

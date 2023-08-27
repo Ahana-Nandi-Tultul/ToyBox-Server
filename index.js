@@ -42,7 +42,7 @@ const verifyJWT = (req, res, next) => {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
 
 
     const subCategoryCollection = client.db('toyBoxDB').collection('subCategories');
@@ -66,7 +66,8 @@ async function run() {
       if(search){
         query = {toyName : search}
       }
-      const result = await toyCollection.find(query).toArray();
+      
+      const result = await toyCollection.find(query, options).toArray();
       res.send(result);
     })
 
@@ -75,7 +76,7 @@ async function run() {
       const options = {
         projection: { _id: 1, toyName: 1, photo: 1 }
       };
-      const result = await toyCollection.find(query, options).limit(15).toArray();
+      const result = await toyCollection.find(query, options).limit(9).toArray();
       res.send(result);
     })
 
@@ -108,17 +109,19 @@ async function run() {
       res.send(result)
     })
 
-    app.get('/myToys', verifyJWT, async( req, res ) => {
+    app.get('/myToys',verifyJWT, async( req, res ) => {
       const email = req.query.email;
+      const sort = req?.query?.sort == 'true' ? 1 : -1;
       const query = {
         sellerEmail: email
       }
-      const result = await toyCollection.find(query).toArray();
+      const result = await toyCollection.find(query).sort({toyPrice : sort }).toArray();
       res.send(result);
     })
 
     app.post('/toys', verifyJWT, async(req, res) => {
       const toys = req.body;
+      toys.toyPrice = parseFloat(toys.toyPrice)
       const result = await toyCollection.insertOne(toys)
       res.send(result);
     })

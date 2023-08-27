@@ -61,13 +61,13 @@ async function run() {
     })
 
     app.get('/toys', async(req, res) => {
-      const search = req.query.search;
+      const search = req?.query?.search;
       let query = {};
       if(search){
         query = {toyName : search}
       }
       
-      const result = await toyCollection.find(query, options).toArray();
+      const result = await toyCollection.find(query).toArray();
       res.send(result);
     })
 

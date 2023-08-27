@@ -121,7 +121,6 @@ async function run() {
 
     app.post('/toys', verifyJWT, async(req, res) => {
       const toys = req.body;
-      toys.toyPrice = parseFloat(toys.toyPrice)
       const result = await toyCollection.insertOne(toys)
       res.send(result);
     })

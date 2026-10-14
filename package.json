@@ -1,5 +1,12 @@
 {
   "name": "toy-master-server",
+  "projectSettings": {
+    "framework": null,
+    "buildCommand": null,
+    "outputDirectory": null,
+    "devCommand": "npm run dev",
+    "installCommand": "npm install"
+  },
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
